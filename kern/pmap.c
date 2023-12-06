@@ -150,15 +150,15 @@ mem_init(void)
 	// to initialize all fields of each struct PageInfo to 0.
 	// Your code goes here:
 
-  uint32_t addr = npages_basemem;
-  size_t t;
   pages = (struct PageInfo*) boot_alloc(sizeof(struct PageInfo) * npages);
   memset(pages, 0, sizeof(struct PageInfo) * npages);
-
 
 	//////////////////////////////////////////////////////////////////////
 	// Make 'envs' point to an array of size 'NENV' of 'struct Env'.
 	// LAB 3: Your code here.
+
+  envs = (struct Env *) boot_alloc(sizeof(struct Env)* NENV);
+  memset(envs, 0, sizeof(struct Env) *NENV);
 
 	//////////////////////////////////////////////////////////////////////
 	// Now that we've allocated the initial kernel data structures, we set
@@ -192,6 +192,8 @@ mem_init(void)
 	//    - the new image at UENVS  -- kernel R, user R
 	//    - envs itself -- kernel RW, user NONE
 	// LAB 3: Your code here.
+
+  boot_map_region(kern_pgdir, UENVS, PTSIZE, PADDR(envs), PTE_U);
 
 	//////////////////////////////////////////////////////////////////////
 	// Use the physical memory that 'bootstack' refers to as the kernel
@@ -555,9 +557,24 @@ static uintptr_t user_mem_check_addr;
 int
 user_mem_check(struct Env *env, const void *va, size_t len, int perm)
 {
-	// LAB 3: Your code here.
-
-	return 0;
+  void *begin = ROUNDDOWN(va, PGSIZE);
+  void *end = ROUNDUP(va + len, PGSIZE);
+  pte_t *tmp;
+  perm |= PTE_P;
+  if ((uint32_t)end > ULIM) {
+    user_mem_check_addr = MAX(ULIM, (uintptr_t)va);
+    return -E_FAULT;
+  }
+  
+  for(; begin < end; begin += PGSIZE){
+    tmp = pgdir_walk(env->env_pgdir, begin, 0);
+    if(!tmp || (*tmp & perm) != perm){
+      user_mem_check_addr = MAX((uintptr_t)va,begin) ;
+      return -E_FAULT;
+    }
+  }
+  return 0;
+  
 }
 
 //
