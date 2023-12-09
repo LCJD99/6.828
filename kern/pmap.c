@@ -259,7 +259,7 @@ mem_init_mp(void)
 	//
 	// For CPU i, use the physical memory that 'percpu_kstacks[i]' refers
 	// to as its kernel stack. CPU i's kernel stack grows down from virtual
-	// address kstacktop_i = KSTACKTOP - i * (KSTKSIZE + KSTKGAP), and is
+	// address kstacktop_i =  STACKTOP - i * (KSTKSIZE + KSTKGAP), and is
 	// divided into two pieces, just like the single stack you set up in
 	// mem_init:
 	//     * [kstacktop_i - KSTKSIZE, kstacktop_i)
@@ -271,7 +271,11 @@ mem_init_mp(void)
 	//     Permissions: kernel RW, user NONE
 	//
 	// LAB 4: Your code here:
-
+  int i;
+  for(i = 0; i < NCPU; ++i){
+    uint32_t kstacktop_i =  KSTACKTOP - (i)* (KSTKSIZE + KSTKGAP);
+    boot_map_region(kern_pgdir, kstacktop_i - KSTKSIZE, KSTKSIZE, PADDR(percpu_kstacks[i]) , PTE_W);
+  }
 }
 
 // --------------------------------------------------------------
@@ -313,7 +317,9 @@ page_init(void)
 
   // 2) 
 	size_t i ;
+  int mp = pa2page(MPENTRY_PADDR) - pages;
 	for (i = 1; i < npages_basemem; i++) {
+    if(i == mp) continue;
 		pages[i].pp_ref = 0;
 		pages[i].pp_link = page_free_list;
 		page_free_list = &pages[i];
@@ -600,7 +606,13 @@ mmio_map_region(physaddr_t pa, size_t size)
 	// Hint: The staff solution uses boot_map_region.
 	//
 	// Your code here:
-	panic("mmio_map_region not implemented");
+  size_t sz = ROUNDUP(size, PGSIZE);
+  assert(base + sz <  MMIOLIM);
+  boot_map_region(kern_pgdir,base,sz, pa, PTE_PCD | PTE_PWT | PTE_W); 
+  size_t ans = base;
+  base += sz;
+  return ans;
+
 }
 
 static uintptr_t user_mem_check_addr;
@@ -843,9 +855,11 @@ check_kern_pgdir(void)
 	// (updated in lab 4 to check per-CPU kernel stacks)
 	for (n = 0; n < NCPU; n++) {
 		uint32_t base = KSTACKTOP - (KSTKSIZE + KSTKGAP) * (n + 1);
-		for (i = 0; i < KSTKSIZE; i += PGSIZE)
+		for (i = 0; i < KSTKSIZE; i += PGSIZE){
 			assert(check_va2pa(pgdir, base + KSTKGAP + i)
 				== PADDR(percpu_kstacks[n]) + i);
+
+    }
 		for (i = 0; i < KSTKGAP; i += PGSIZE)
 			assert(check_va2pa(pgdir, base + i) == ~0);
 	}
