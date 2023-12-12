@@ -165,7 +165,7 @@ qemu-nox: $(IMAGES) pre-qemu
 	@echo "***"
 	@echo "*** Use Ctrl-a x to exit qemu"
 	@echo "***"
-	$(QEMU) -nographic $(QEMUOPTS)
+	$(QEMU) -nographic $(QEMUOPTS) 
 
 qemu-gdb: $(IMAGES) pre-qemu
 	@echo "***"

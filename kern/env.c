@@ -537,6 +537,7 @@ env_run(struct Env *e)
   curenv -> env_runs++;
 
 	//	   5. Use lcr3() to switch to its address space.
+  unlock_kernel();
   lcr3(PADDR(curenv->env_pgdir));
 
 
