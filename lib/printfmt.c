@@ -207,6 +207,7 @@ vprintfmt(void (*putch)(int, void*), void *putdat, const char *fmt, va_list ap)
 
 		// (unsigned) octal
 		case 'o':
+			// Exercise 8, Lab 1
 			num = getuint(&ap, lflag);
 			base = 8;
 			goto number;
@@ -296,5 +297,3 @@ snprintf(char *buf, int n, const char *fmt, ...)
 
 	return rc;
 }
-
-

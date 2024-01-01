@@ -48,44 +48,62 @@
  * Lab 3: Your code here for generating entry points for the different traps.
  */
 
+// processor exceptions
+TRAPHANDLER_NOEC(divide_error_handler, T_DIVIDE)
+TRAPHANDLER_NOEC(debug_exception_handler, T_DEBUG)
+TRAPHANDLER_NOEC(non_maskable_interrupt_handler, T_NMI)
+TRAPHANDLER_NOEC(breakpoint_handler, T_BRKPT)
+TRAPHANDLER_NOEC(overflow_handler, T_OFLOW)
+TRAPHANDLER_NOEC(bounds_check_handler, T_BOUND)
+TRAPHANDLER_NOEC(invalid_opcode_handler, T_ILLOP)
+TRAPHANDLER_NOEC(device_not_available_handler, T_DEVICE)
+TRAPHANDLER(double_fault_handler, T_DBLFLT)
+TRAPHANDLER(invalid_tss_handler, T_TSS)
+TRAPHANDLER(segment_not_present_handler, T_SEGNP)
+TRAPHANDLER(stack_exception_handler, T_STACK)
+TRAPHANDLER(general_protection_fault_handler, T_GPFLT)
+TRAPHANDLER(pagefault_handler, T_PGFLT)
+TRAPHANDLER_NOEC(floating_point_error_handler, T_FPERR)
+TRAPHANDLER(alignment_check_handler, T_ALIGN)
+TRAPHANDLER_NOEC(machine_check_handler, T_MCHK)
+TRAPHANDLER_NOEC(simd_floating_point_error_handler, T_SIMDERR)
+TRAPHANDLER_NOEC(syscall_handler, T_SYSCALL)
 
-TRAPHANDLER_NOEC(T_DIVIDE_handler, T_DIVIDE)
-TRAPHANDLER_NOEC(T_DEBUG_handler, T_DEBUG)
-TRAPHANDLER_NOEC(T_NMI_handler, T_NMI)
-TRAPHANDLER_NOEC(T_BRKPT_handler, T_BRKPT)
-TRAPHANDLER_NOEC(T_OFLOW_handler, T_OFLOW)
-TRAPHANDLER_NOEC(T_BOUND_handler, T_BOUND)
-TRAPHANDLER_NOEC(T_ILLOP_handler, T_ILLOP)
-TRAPHANDLER_NOEC(T_DEVICE_handler, T_DEVICE)
-TRAPHANDLER(T_DBLFLT_handler, T_DBLFLT)
-TRAPHANDLER(T_TSS_handler, T_TSS)
-TRAPHANDLER(T_SEGNP_handler, T_SEGNP)
-TRAPHANDLER(T_STACK_handler, T_STACK)
-TRAPHANDLER(T_GPFLT_handler, T_GPFLT)
-TRAPHANDLER(T_PGFLT_handler, T_PGFLT)
-TRAPHANDLER_NOEC(T_FPERR_handler, T_FPERR)
-TRAPHANDLER(T_ALIGN_handler, T_ALIGN)
-TRAPHANDLER_NOEC(T_MCHK_handler, T_MCHK)
-TRAPHANDLER_NOEC(T_SIMDERR_handler, T_SIMDERR)
-
-TRAPHANDLER_NOEC(T_SYSCALL_handler, T_SYSCALL)
-TRAPHANDLER_NOEC(T_DEFAULT_handler,T_DEFAULT)
-
+// externel interrupts
+TRAPHANDLER_NOEC(irq_0_handler,  IRQ_OFFSET + 0);
+TRAPHANDLER_NOEC(irq_1_handler,  IRQ_OFFSET + 1);
+TRAPHANDLER_NOEC(irq_2_handler,  IRQ_OFFSET + 2);
+TRAPHANDLER_NOEC(irq_3_handler,  IRQ_OFFSET + 3);
+TRAPHANDLER_NOEC(irq_4_handler,  IRQ_OFFSET + 4);
+TRAPHANDLER_NOEC(irq_5_handler,  IRQ_OFFSET + 5);
+TRAPHANDLER_NOEC(irq_6_handler,  IRQ_OFFSET + 6);
+TRAPHANDLER_NOEC(irq_7_handler,  IRQ_OFFSET + 7);
+TRAPHANDLER_NOEC(irq_8_handler,  IRQ_OFFSET + 8);
+TRAPHANDLER_NOEC(irq_9_handler,  IRQ_OFFSET + 9);
+TRAPHANDLER_NOEC(irq_10_handler, IRQ_OFFSET + 10);
+TRAPHANDLER_NOEC(irq_11_handler, IRQ_OFFSET + 11);
+TRAPHANDLER_NOEC(irq_12_handler, IRQ_OFFSET + 12);
+TRAPHANDLER_NOEC(irq_13_handler, IRQ_OFFSET + 13);
+TRAPHANDLER_NOEC(irq_14_handler, IRQ_OFFSET + 14);
+TRAPHANDLER_NOEC(irq_15_handler, IRQ_OFFSET + 15);
 
 /*
  * Lab 3: Your code here for _alltraps
  */
 
-.globl _alltraps;
 _alltraps:
-	pushl %ds
-	pushl %es
-	pushal
+// push ds and es and general registers
+push %ds
+push %es
+pushal
 
-	movw $GD_KD, %bx
-	movw %bx, %ds
-	movw %bx, %es
+// load ds and es with GD_KD, for kernel stack locates in data
+mov $GD_KD, %ax
+mov %ax, %ds
+mov %ax, %es
 
-	pushl %esp
+// pass tf as an argument
+pushl %esp
 
-	call trap
+// call trap and no need to return
+call trap
